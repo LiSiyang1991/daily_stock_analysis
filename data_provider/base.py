@@ -523,6 +523,7 @@ class DataFetcherManager:
         "BaostockFetcher": {"cn"},
         "YfinanceFetcher": {"cn", "hk", "us"},
         "LongbridgeFetcher": {"hk", "us"},
+        "MassiveFetcher": {"us"},
     }
     
     def __init__(self, fetchers: Optional[List[BaseFetcher]] = None):
@@ -1007,6 +1008,8 @@ class DataFetcherManager:
         from .baostock_fetcher import BaostockFetcher
         from .yfinance_fetcher import YfinanceFetcher
         from .longbridge_fetcher import LongbridgeFetcher
+        # Optional fetchers determined by credentials
+        from .massive_fetcher import MassiveFetcher
         config = get_config()
         # 创建所有数据源实例（优先级在各 Fetcher 的 __init__ 中确定）
         efinance = EfinanceFetcher()
@@ -1031,6 +1034,12 @@ class DataFetcherManager:
             optional_fetchers.append(LongbridgeFetcher())  # 长桥（美股/港股兜底，懒加载）
         else:
             logger.debug("[数据源初始化] 跳过未配置的 LongbridgeFetcher")
+
+        massive_key = (getattr(config, "massive_api_key", None) or "").strip()
+        if massive_key:
+            optional_fetchers.append(MassiveFetcher())  # US-only aggregates via Massive
+        else:
+            logger.debug("[数据源初始化] 跳过未配置的 MassiveFetcher")
 
         # 初始化数据源列表
         self._ensure_concurrency_guards()
@@ -1119,10 +1128,11 @@ class DataFetcherManager:
         # 美股（含美股指数）使用 Longbridge/YFinance 特殊路由；港股走下方通用数据源循环
         if is_us:
             prefer_lb = self._longbridge_preferred(capability="daily_data") and not is_us_index
+            # Prefer Longbridge when configured (non-index). Always try MassiveFetcher when available.
             source_order = (
-                ["LongbridgeFetcher", "YfinanceFetcher"]
+                ["LongbridgeFetcher", "MassiveFetcher", "YfinanceFetcher"]
                 if prefer_lb
-                else ["YfinanceFetcher", "LongbridgeFetcher"]
+                else ["MassiveFetcher", "YfinanceFetcher", "LongbridgeFetcher"]
             )
             market_label = "美股指数" if is_us_index else "美股"
 
