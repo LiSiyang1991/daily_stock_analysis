@@ -1125,7 +1125,7 @@ class DataFetcherManager:
             logger.error(f"[数据源终止] {stock_code} 获取失败: {error_summary}")
             raise DataFetchError(error_summary)
 
-        # 美股（含美股指数）使用 Longbridge/YFinance 特殊路由；港股走下方通用数据源循环
+        # 美股（含美股指数）使用 Longbridge / Massive / YFinance 特殊路由；港股走下方通用数据源循环
         if is_us:
             prefer_lb = self._longbridge_preferred(capability="daily_data") and not is_us_index
             # Prefer Longbridge when configured (non-index). Always try MassiveFetcher when available.
