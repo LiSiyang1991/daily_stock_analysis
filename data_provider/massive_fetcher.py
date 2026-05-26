@@ -108,7 +108,11 @@ class MassiveFetcher(BaseFetcher):
         }
         data = self._http_get(url, params)
         results = (data or {}).get("results") or []
+        results_count = data.get("resultsCount") if isinstance(data, dict) else len(results)
         if not results:
+            logger.info(
+                "[MassiveFetcher] 无数据: ticker=%s range=%s→%s resultsCount=%s", ticker, start_date, end_date, results_count
+            )
             return pd.DataFrame(columns=STANDARD_COLUMNS)
 
         # Normalize each item into a dict with canonical keys
@@ -150,6 +154,10 @@ class MassiveFetcher(BaseFetcher):
             )
 
         df = pd.DataFrame(rows)
+        logger.info(
+            "[MassiveFetcher] 数据获取: ticker=%s range=%s→%s rows=%d resultsCount=%s",
+            ticker, start_date, end_date, len(df), results_count,
+        )
         return df
 
     def _normalize_data(self, df: pd.DataFrame, stock_code: str) -> pd.DataFrame:
@@ -181,6 +189,22 @@ class MassiveFetcher(BaseFetcher):
             out.loc[out.index[0], "pct_chg"] = 0.0
         else:
             out["pct_chg"] = None
+
+        # Log data summary for workflow observability
+        if not out.empty:
+            first = out.iloc[0]
+            last = out.iloc[-1]
+            logger.info(
+                "[MassiveFetcher] %s: %d条数据, %s→%s, 首行 close=%.2f vol=%s, 末行 close=%.2f vol=%s",
+                stock_code,
+                len(out),
+                str(first.get("date", "?")),
+                str(last.get("date", "?")),
+                float(first.get("close", 0) or 0),
+                str(first.get("volume", "?")),
+                float(last.get("close", 0) or 0),
+                str(last.get("volume", "?")),
+            )
 
         # Reindex to standard columns
         for col in STANDARD_COLUMNS:
