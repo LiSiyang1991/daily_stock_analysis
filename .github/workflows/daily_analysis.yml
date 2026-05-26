@@ -244,6 +244,8 @@ jobs:
           LONGBRIDGE_ENABLE_OVERNIGHT: ${{ vars.LONGBRIDGE_ENABLE_OVERNIGHT || secrets.LONGBRIDGE_ENABLE_OVERNIGHT }}
           LONGBRIDGE_PUSH_CANDLESTICK_MODE: ${{ vars.LONGBRIDGE_PUSH_CANDLESTICK_MODE || secrets.LONGBRIDGE_PUSH_CANDLESTICK_MODE }}
           LONGBRIDGE_PRINT_QUOTE_PACKAGES: ${{ vars.LONGBRIDGE_PRINT_QUOTE_PACKAGES || secrets.LONGBRIDGE_PRINT_QUOTE_PACKAGES }}
+          # Massive（美股聚合数据源，Polygon.io 改版）
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
           
           # ==========================================
           # 搜索服务
@@ -410,6 +412,7 @@ jobs:
           echo "【数据源】"
           echo "  Tushare Token: $([ -n "$TUSHARE_TOKEN" ] && echo '✅ 已配置' || echo '⚪ 未配置')"
           echo "  Longbridge: $([ -n "$LONGBRIDGE_APP_KEY" ] && [ -n "$LONGBRIDGE_APP_SECRET" ] && [ -n "$LONGBRIDGE_ACCESS_TOKEN" ] && echo '✅ 已配置（美股/港股行情补充）' || echo '⚪ 未配置（仅 YFinance 等，无长桥调用）')"
+          echo "  Massive: $([ -n "$MASSIVE_API_KEY" ] && echo '✅ 已配置（美股聚合数据源）' || echo '⚪ 未配置')"
           echo ""
           echo "【搜索引擎】"
           echo "  Bocha API Keys: $([ -n "$BOCHA_API_KEYS" ] && echo '✅ 已配置' || echo '⚪ 未配置')"

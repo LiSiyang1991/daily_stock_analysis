@@ -32,6 +32,8 @@ jobs:
 
       - name: 🌐 Run pytest network smoke (non-blocking)
         continue-on-error: true
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
         run: |
           set -o pipefail
           python -m pytest -m network -q | tee pytest-network.log
